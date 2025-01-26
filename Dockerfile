@@ -1,15 +1,25 @@
-# Use a base image that supports systemd, for example, Ubuntu
+# Use an Ubuntu base image
 FROM ubuntu:20.04
 
-# Install necessary packages
-RUN apt-get update && \
-apt-get install -y shellinabox && \
-apt-get install -y systemd && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN echo 'root:root' | chpasswd
-# Expose the web-based terminal port
-EXPOSE 4200
+# Set environment variables to avoid interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Start shellinabox
-CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
+# Update system and install XRDP and necessary packages
+RUN apt-get update && \
+    apt-get install -y xrdp xfce4 xfce4-goodies && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Set a password for the root user (replace 'rootpassword' with a secure password)
+RUN echo "root:a" | chpasswd
+
+# Configure XRDP to use xfce4 as the session
+RUN echo "xfce4-session" > /root/.xsession && \
+    sed -i 's/3389/3889/' /etc/xrdp/xrdp.ini && \
+    service xrdp restart
+
+# Expose the XRDP port
+EXPOSE 3889
+
+# Start the XRDP service
+CMD ["/usr/sbin/xrdp", "--nodaemon"]
