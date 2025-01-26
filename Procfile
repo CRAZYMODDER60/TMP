@@ -1,1 +1,1 @@
-web: /usr/bin/shellinaboxd -t -s /:LOGIN
+web: /usr/sbin/xrdp --nodaemon
